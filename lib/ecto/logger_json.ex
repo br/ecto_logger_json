@@ -27,24 +27,27 @@ defmodule Ecto.LoggerJSON do
   """
   @spec log(%{}) :: %{}
   def log(entry) do
-    _ = Logger.debug(fn ->
-      %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query} = entry
-      [query_time, decode_time, queue_time] =
-        [query_time, decode_time, queue_time]
-        |> Enum.map(&format_time/1)
+    _ =
+      Logger.debug(fn ->
+        %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query} = entry
 
-      %{
-        "decode_time" => decode_time,
-        "duration"    => Float.round(query_time + decode_time + queue_time, 3),
-        "log_type"    => "persistence",
-        "request_id"  => Logger.metadata[:request_id],
-        "query"       => query,
-        "query_time"  => query_time,
-        "queue_time"  => queue_time
-      }
-      |> Poison.encode!
-    end)
-  entry
+        [query_time, decode_time, queue_time] =
+          [query_time, decode_time, queue_time]
+          |> Enum.map(&format_time/1)
+
+        %{
+          "decode_time" => decode_time,
+          "duration" => Float.round(query_time + decode_time + queue_time, 3),
+          "log_type" => "persistence",
+          "request_id" => Logger.metadata()[:request_id],
+          "query" => query,
+          "query_time" => query_time,
+          "queue_time" => queue_time
+        }
+        |> Poison.encode!()
+      end)
+
+    entry
   end
 
   @doc """
@@ -55,29 +58,33 @@ defmodule Ecto.LoggerJSON do
   """
   @spec log(%{}, atom) :: %{}
   def log(entry, level) do
-    _ = Logger.log(level, fn ->
-      %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query} = entry
-      [query_time, decode_time, queue_time] =
-        [query_time, decode_time, queue_time]
-        |> Enum.map(&format_time/1)
+    _ =
+      Logger.log(level, fn ->
+        %{query_time: query_time, decode_time: decode_time, queue_time: queue_time, query: query} = entry
 
-      %{
-        "decode_time" => decode_time,
-        "duration"    => Float.round(query_time + decode_time + queue_time, 3),
-        "log_type"    => "persistence",
-        "request_id"  => Logger.metadata[:request_id],
-        "query"       => query,
-        "query_time"  => query_time,
-        "queue_time"  => queue_time
-      }
-      |> Poison.encode!
-    end)
+        [query_time, decode_time, queue_time] =
+          [query_time, decode_time, queue_time]
+          |> Enum.map(&format_time/1)
+
+        %{
+          "decode_time" => decode_time,
+          "duration" => Float.round(query_time + decode_time + queue_time, 3),
+          "log_type" => "persistence",
+          "request_id" => Logger.metadata()[:request_id],
+          "query" => query,
+          "query_time" => query_time,
+          "queue_time" => queue_time
+        }
+        |> Poison.encode!()
+      end)
+
     entry
   end
 
   ## Helpers
 
   defp format_time(nil), do: 0.0
+
   defp format_time(time) do
     ms = System.convert_time_unit(time, :native, :micro_seconds) / 1000
     Float.round(ms, 3)
